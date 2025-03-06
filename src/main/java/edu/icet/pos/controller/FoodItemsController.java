@@ -70,5 +70,10 @@ public class FoodItemsController {
     }
 
 
+    // Get discounted price of a food item
+    @GetMapping("/foodItem-discounted-price/{id}")
+    public ResponseEntity<Double> getDiscountedPrice(@PathVariable Integer id) {
+        return ResponseEntity.ok(serviceFI.calculateDiscountedPrice(id));
+    }
 
 }

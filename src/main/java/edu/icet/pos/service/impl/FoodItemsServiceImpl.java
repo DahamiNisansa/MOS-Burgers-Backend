@@ -27,6 +27,7 @@ public class FoodItemsServiceImpl implements FoodItemsService {
     final FoodItemsRepo repo;
     final ModelMapper mapper;
 
+
     @Override
     public void addFoodItem(FoodItemsDto foodItems) {
         //repo.save(mapper.map(foodItems, FoodItemsEntity.class));
@@ -41,8 +42,17 @@ public class FoodItemsServiceImpl implements FoodItemsService {
             foodItem.setCategory(category);
         }
 
+        //validate price and discount
+        if (foodItems.getPrice() <= 0) {
+            throw new RuntimeException("Price must be greater than zero");
+        }
+        if (foodItems.getDiscountPercentage() < 0 || foodItems.getDiscountPercentage() > 50.0) {
+            throw new RuntimeException("Discount must be between 0% and 50%");
+        }
+
         repo.save(foodItem);
     }
+
 
 
 
@@ -64,7 +74,25 @@ public class FoodItemsServiceImpl implements FoodItemsService {
             existingFoodItem.setCategory(category);
         }
 
+        //validate price and discount
+        if (foodItemDto.getPrice() <= 0) {
+            throw new RuntimeException("Price must be greater than zero");
+        }
+        if (foodItemDto.getDiscountPercentage() < 0 || foodItemDto.getDiscountPercentage() > 50.0) {
+            throw new RuntimeException("Discount must be between 0% and 50%");
+        }
+
         repo.save(existingFoodItem);
+    }
+
+
+
+    public Double calculateDiscountedPrice(Integer id) {
+        // Get Price After Discount
+        FoodItemsEntity food = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Food item not found"));
+
+        return food.getPrice() - (food.getPrice() * food.getDiscountPercentage() / 100);
     }
 
 

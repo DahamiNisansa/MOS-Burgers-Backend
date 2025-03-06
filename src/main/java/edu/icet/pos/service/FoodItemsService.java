@@ -22,4 +22,6 @@ public interface FoodItemsService {
     List<FoodItemsDto> getLowStockItems(Integer threshold);
 
     List<FoodItemsDto> getExpiredFoodItems();
+
+    Double calculateDiscountedPrice(Integer id);
 }
