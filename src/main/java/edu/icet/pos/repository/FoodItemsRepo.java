@@ -13,7 +13,7 @@ public interface FoodItemsRepo extends JpaRepository<FoodItemsEntity,Integer> {
 
     List<FoodItemsEntity> findByName(String name);
 
-    List<FoodItemsEntity> findByStockLessThan(Integer threshold);
+    List<FoodItemsEntity> findByStockQuantityLessThan(Integer threshold);
 
     List<FoodItemsEntity> findByExpirationDateBefore(LocalDate today);
 }

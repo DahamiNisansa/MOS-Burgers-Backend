@@ -1,5 +1,6 @@
 package edu.icet.pos.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +10,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(exclude = "category")
 
 @Entity
 @Table(name = "food_items")
@@ -31,9 +32,11 @@ public class FoodItemsEntity {
     private Integer stockQuantity;
     private LocalDate expirationDate;
     private Double discountPercentage;
-    //private Integer stock;
 
     @ManyToOne
-    @JoinColumn(name = "category_id") //, nullable = false
+    @JoinColumn(name = "category_id")
+    @JsonIgnoreProperties("foodItems")
     private CategoryEntity category;
+
+
 }

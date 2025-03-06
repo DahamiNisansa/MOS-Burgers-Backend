@@ -70,9 +70,5 @@ public class FoodItemsController {
     }
 
 
-    /*@GetMapping("/food-items/getItem-by-category/{categoryId}")
-    public ResponseEntity<List<FoodItem>> getFoodItemsByCategory(@PathVariable Integer categoryId) {
-        return ResponseEntity.ok(foodItemService.getFoodItemsByCategory(categoryId));
-    } */
 
 }

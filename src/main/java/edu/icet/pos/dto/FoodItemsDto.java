@@ -19,7 +19,6 @@ public class FoodItemsDto {
     private Integer stockQuantity;
     private LocalDate expirationDate;
     private Double discountPercentage;
-   //private Integer stock;
 
     private Integer category;
 }

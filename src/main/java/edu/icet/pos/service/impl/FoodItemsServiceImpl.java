@@ -5,8 +5,10 @@ import edu.icet.pos.dto.FoodItemsDto;
 import edu.icet.pos.entity.CategoryEntity;
 import edu.icet.pos.entity.CustomerEntity;
 import edu.icet.pos.entity.FoodItemsEntity;
+import edu.icet.pos.repository.CategoryRepo;
 import edu.icet.pos.repository.FoodItemsRepo;
 import edu.icet.pos.service.FoodItemsService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -21,32 +23,50 @@ import java.util.stream.Collectors;
 
 public class FoodItemsServiceImpl implements FoodItemsService {
 
+    final CategoryRepo repoCa;
     final FoodItemsRepo repo;
     final ModelMapper mapper;
 
     @Override
     public void addFoodItem(FoodItemsDto foodItems) {
-        repo.save(mapper.map(foodItems, FoodItemsEntity.class));
+        //repo.save(mapper.map(foodItems, FoodItemsEntity.class));
 
-        /* Map DTO to Entity
-        FoodItemsEntity foodEntity = mapper.map(foodItems, FoodItemsEntity.class);
+        // Convert DTO to entity using ModelMapper
+        FoodItemsEntity foodItem = mapper.map(foodItems, FoodItemsEntity.class);
 
-        // Fetch category from the database
-        FoodItemsEntity category = repo.findById(foodItems.getCategory())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+        // Fetch and set the category manually
+        if (foodItems.getCategory() != null) {
+            CategoryEntity category = repoCa.findById(foodItems.getCategory())
+                    .orElseThrow(() -> new RuntimeException("Category not found with ID: " + foodItems.getCategory()));
+            foodItem.setCategory(category);
+        }
 
-        // Set category to food item
-        foodEntity.setCategory(mapper.map(category, CategoryEntity.class));
-
-        // Save food item with assigned category
-        repo.save(foodEntity); */
+        repo.save(foodItem);
     }
+
 
 
     @Override
-    public void updateFoodItem(FoodItemsDto foodItem) {
-        repo.save(mapper.map(foodItem, FoodItemsEntity.class));
+    public void updateFoodItem(FoodItemsDto foodItemDto) {
+        //repo.save(mapper.map(foodItem, FoodItemsEntity.class));
+
+        // Fetch the existing food item from the database
+        FoodItemsEntity existingFoodItem = repo.findById(foodItemDto.getId())
+                .orElseThrow(() -> new RuntimeException("Food item not found with ID: " + foodItemDto.getId()));
+
+        // Map the DTO fields to the existing entity (excluding ID to avoid primary key changes)
+        mapper.map(foodItemDto, existingFoodItem);
+
+        // Manually set the category if categoryId is provided
+        if (foodItemDto.getCategory() != null) {
+            CategoryEntity category = repoCa.findById(foodItemDto.getCategory())
+                    .orElseThrow(() -> new RuntimeException("Category not found with ID: " + foodItemDto.getCategory()));
+            existingFoodItem.setCategory(category);
+        }
+
+        repo.save(existingFoodItem);
     }
+
 
 
     @Override
@@ -54,17 +74,28 @@ public class FoodItemsServiceImpl implements FoodItemsService {
         repo.deleteById(id);
     }
 
+
+
+    @Transactional
     @Override
     public List<FoodItemsDto> getAllFoodItems() {
         List<FoodItemsDto> foodItemList = new ArrayList<>();
         List<FoodItemsEntity> all = repo.findAll();
 
         all.forEach(foodItemsEntity ->  {
-            foodItemList.add(mapper.map(foodItemsEntity, FoodItemsDto.class));
+            FoodItemsDto dto = mapper.map(foodItemsEntity, FoodItemsDto.class);
+
+            // Manually set categoryId if category is not null
+            if (foodItemsEntity.getCategory() != null) {
+                dto.setCategory(foodItemsEntity.getCategory().getId());
+            }
+
+            foodItemList.add(dto);
         });
 
         return foodItemList;
     }
+
 
 
     @Override
@@ -95,7 +126,7 @@ public class FoodItemsServiceImpl implements FoodItemsService {
 
     @Override
     public List<FoodItemsDto> getLowStockItems(Integer threshold) {
-        List<FoodItemsEntity> lowStockItems = repo.findByStockLessThan(threshold);
+        List<FoodItemsEntity> lowStockItems = repo.findByStockQuantityLessThan(threshold);
         return lowStockItems.stream()
                 .map(item -> mapper.map(item, FoodItemsDto.class))
                 .collect(Collectors.toList());
